@@ -29,7 +29,7 @@ class Controller
 
         if(file_exists(ROOT_PATH . 'app' . DS . 'models' . DS . $controller_name . 'model' . '.php')){
 
-            $model = 'App' . DS. 'Models' . DS . $controller_name . 'Model';
+            $model = 'App' . "\\". 'Models' . "\\" . $controller_name . 'Model';
 
             $this->model = new $model();
 
