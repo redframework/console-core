@@ -199,7 +199,7 @@ class Commander
                         $controller = $CM[0];
                         $method = $CM[1];
 
-                        $namespace = "App" . DS . "Controllers" . DS . $controller;
+                        $namespace = "App" . "\\" . "Controllers" . "\\" . $controller;
 
                         if (file_exists($namespace . '.php')) {
                             $controller_instance = new $namespace();
