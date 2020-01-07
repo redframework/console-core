@@ -46,8 +46,22 @@ define('DB3', 'DATABASE_3');
 class Model
 {
 
+    /**
+     * @var $db_1_connection Database
+     */
+
     protected $db_1_connection;
+
+    /**
+     * @var $db_2_connection Database
+     */
+
     protected $db_2_connection;
+
+    /**
+     * @var $db_3_connection Database
+     */
+
     protected $db_3_connection;
 
     protected $fields;
