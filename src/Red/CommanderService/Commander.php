@@ -201,7 +201,7 @@ class Commander
 
                         $namespace = "App" . "\\" . "Controllers" . "\\" . $controller;
 
-                        if (file_exists($namespace . '.php')) {
+                        if (file_exists(ROOT_PATH . "app" . DS . "Controllers" . DS . $controller . '.php')) {
                             $controller_instance = new $namespace();
                         } else {
                             if (strtolower(Environment::get("DEBUG", "Errors")) == "on") {
