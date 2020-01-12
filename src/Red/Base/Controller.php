@@ -27,7 +27,7 @@ class Controller
 
         $controller_name = substr($controller_name, strrpos($controller_name, '\\') + 1);
 
-        if(file_exists(ROOT_PATH . 'app' . DS . 'models' . DS . $controller_name . 'model' . '.php')){
+        if(file_exists(ROOT_PATH . 'app' . DS . 'Models' . DS . $controller_name . 'Model' . '.php')){
 
             $model = 'App' . "\\". 'Models' . "\\" . $controller_name . 'Model';
 
