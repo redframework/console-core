@@ -1256,7 +1256,7 @@ class Validate
      * @param callable $model_callback
      * @return boolean
      */
-    public static function addRole($rule, $standard_callback, $model_callback)
+    public static function addRule($rule, $standard_callback, $model_callback)
     {
         array_push(self::$rules, ['rule' => $rule, 'standard_callback' => $standard_callback,
             'model_callback' => $model_callback
