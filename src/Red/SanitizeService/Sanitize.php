@@ -11,7 +11,7 @@ namespace Red\SanitizeService;
 class Sanitize
 {
 
-    private static $roles = array();
+    private static $rules = array();
 
     public static function initialize(){
         Rules::rules();
@@ -26,9 +26,9 @@ class Sanitize
             return $string;
         }
 
-        foreach (self::$roles as $role){
-            if ($role['role'] == $method){
-                $result = call_user_func_array($role['callback'], [$string]);
+        foreach (self::$rules as $rule){
+            if ($rule['rule'] == $method){
+                $result = call_user_func_array($rule['callback'], [$string]);
                 return $result;
             }
         }
@@ -41,19 +41,19 @@ class Sanitize
      * @param callable $callback
      * @return bool
      */
-    public static function addRole($role, $callback)
+    public static function addRole($rule, $callback)
     {
 
-        array_push(self::$roles, ['role' => $role, 'callback' => $callback]);
+        array_push(self::$rules, ['rule' => $rule, 'callback' => $callback]);
         return TRUE;
     }
 
     /**
      * @return mixed
      */
-    public static function getRoles()
+    public static function getRules()
     {
-        return self::$roles;
+        return self::$rules;
     }
 
 
