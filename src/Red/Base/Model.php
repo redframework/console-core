@@ -11,6 +11,7 @@ namespace Red\Base;
 use Exception;
 use Red\EnvironmentProvider\Environment;
 use Red\Red;
+use Red\StandardExceptions\DB\BadQueryException;
 use Red\ValidateService\Validate;
 use Red\Output\Output;
 
@@ -64,6 +65,7 @@ class Model
 
     protected $db_3_connection;
 
+
     protected $fields;
     protected $parameters;
     protected $condition_parameters;
@@ -92,7 +94,7 @@ class Model
         if (Environment::get('DATABASE_1', 'Status') == 'off' && Environment::get('DATABASE_2', 'Status') == 'off' && Environment::get('DATABASE_3', 'Status') == 'off') {
 
             if (Environment::get('DEBUG', 'Errors') == 'on') {
-                http_response_code(500);
+
 
                 $error_no = "Add Your Database !";
                 $error_message = "No Database is Connected";
@@ -100,7 +102,6 @@ class Model
                 Output::printC($error_message);
                 exit();
             } else {
-                http_response_code(500);
                 Output::printC("Sorry ! Unexpected Error Occurred");
                 exit();
             }
@@ -162,7 +163,6 @@ class Model
         try {
             $config = Environment::get($database);
         } catch (Exception $error) {
-            http_response_code(500);
             echo $error->getMessage();
             exit();
         }
@@ -186,14 +186,12 @@ class Model
 
 
                 if (Environment::get('DEBUG', 'Errors') == 'on') {
-                    http_response_code(500);
                     $error_no = 'MYSQL Database Connection Failed';
                     $error_message = $error;
                     Output::printC($error_no);
                     Output::printC($error_message);
                     exit();
                 } else {
-                    http_response_code(500);
                     Output::printC("Sorry ! Unexpected Error Occurred");
                     exit();
                 }
@@ -283,18 +281,15 @@ class Model
                 }
 
 
-
             } catch (\PDOException $error) {
 
                 if (Environment::get('DEBUG', 'Errors') == 'on') {
-                    http_response_code(500);
                     $error_no = 'MSSQL Database Connection Failed';
                     $error_message = $error;
                     Output::printC($error_no);
                     Output::printC($error_message);
                     exit();
                 } else {
-                    http_response_code(500);
                     Output::printC("Sorry ! Unexpected Error Occurred");
                     exit();
                 }
@@ -359,15 +354,12 @@ class Model
             if (!extension_loaded('pdo_sqlite')) {
 
                 if (Environment::get('DEBUG', 'Errors') == 'on') {
-                    http_response_code(500);
-
                     $error_no = 'SQLite Driver Error';
                     $error_message = "SQLite Extension 'pdo_sqlite' Not Found";
                     Output::printC($error_no);
                     Output::printC($error_message);
                     exit();
                 } else {
-                    http_response_code(500);
                     Output::printC("Sorry ! Unexpected Error Occurred");
                     exit();
                 }
@@ -401,11 +393,9 @@ class Model
                 }
 
 
-
             } catch (\PDOException $error) {
 
                 if (Environment::get('DEBUG', 'Errors') == 'on') {
-                    http_response_code(500);
 
                     $error_no = 'SQLite Database Connection Failed';
                     $error_message = $error;
@@ -413,7 +403,6 @@ class Model
                     Output::printC($error_message);
                     exit();
                 } else {
-                    http_response_code(500);
                     Output::printC("Sorry ! Unexpected Error Occurred");
                     exit();
                 }
@@ -475,14 +464,14 @@ class Model
 
         } else {
             if (Environment::get('DEBUG', 'Errors') == 'on') {
-                http_response_code(500);
+
                 $error_no = $database . ' Connection Failed';
                 $error_message = 'Driver Not Found';
                 Output::printC($error_no);
                 Output::printC($error_message);
                 exit();
             } else {
-                http_response_code(500);
+
                 Output::printC("Sorry ! Unexpected Error Occurred");
                 exit();
             }
@@ -494,8 +483,6 @@ class Model
      */
     public function displayErrors()
     {
-        http_response_code(403);
-
         $errors = Red::getErrors();
         foreach ($errors as $value) {
             echo $value . "<br/>";
@@ -569,6 +556,7 @@ class Model
      * @param null $offset
      * @param null $limit
      * @return bool
+     * @throws BadQueryException
      */
     public function query($table, $method, $database = DB1, $order = NULL, $offset = NULL, $limit = NULL)
     {
@@ -576,7 +564,7 @@ class Model
 
         if (count(Red::getErrors()) === 0) {
 
-            if (Environment::get($database,'Driver') == 'mysql') {
+            if (Environment::get($database, 'Driver') == 'mysql') {
 
 
                 $table = explode(',', $table);
@@ -625,18 +613,7 @@ class Model
                         $this->fields = NULL;
                         $this->parameters = NULL;
                     } catch (\PDOException $error) {
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
                     }
                 } else if ($method === READ) {
 
@@ -690,18 +667,7 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
 
                     }
 
@@ -745,19 +711,7 @@ class Model
 
 
                         } catch (\PDOException $error) {
-
-                            if (Environment::get('DEBUG', 'Errors') == 'on') {
-                                http_response_code(500);
-                                $error_no = "Database Query Error !";
-                                $error_message = $error->getMessage();
-                                Output::printC($error_no);
-                                Output::printC($error_message);
-                                exit();
-                            } else {
-                                http_response_code(500);
-                                Output::printC("Sorry ! Unexpected Error Occurred");
-                                exit();
-                            }
+                            throw new BadQueryException($error->getMessage());
                         }
                     }
 
@@ -819,18 +773,8 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
 
@@ -877,18 +821,8 @@ class Model
 
                         } catch (\PDOException $error) {
 
-                            if (Environment::get('DEBUG', 'Errors') == 'on') {
-                                http_response_code(500);
-                                $error_no = "Database Query Error !";
-                                $error_message = $error->getMessage();
-                                Output::printC($error_no);
-                                Output::printC($error_message);
-                                exit();
-                            } else {
-                                http_response_code(500);
-                                Output::printC("Sorry ! Unexpected Error Occurred");
-                                exit();
-                            }
+                            throw new BadQueryException($error->getMessage());
+
                         }
                     }
 
@@ -926,18 +860,8 @@ class Model
                         $this->parameters = NULL;
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
                 } else if ($method === UPDATE_CONDITION) {
@@ -985,50 +909,21 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
+                        ob_start();
 
-                            ob_start();
+                        $query_handler->debugDumpParams();
 
-                            $query_handler->debugDumpParams();
-
-                            if ($database == 'DATABASE_1') {
-                                array_push(self::$db_1_query_history, ob_get_contents());
-                            } else if ($database == 'DATABASE_2') {
-                                array_push(self::$db_2_query_history, ob_get_contents());
-                            } else if ($database == 'DATABASE_3') {
-                                array_push(self::$db_3_query_history, ob_get_contents());
-                            }
-
-                            ob_end_clean();
-
-
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-
-                            ob_start();
-
-                            $query_handler->debugDumpParams();
-
-                            if ($database == 'DATABASE_1') {
-                                array_push(self::$db_1_query_history, ob_get_contents());
-                            } else if ($database == 'DATABASE_2') {
-                                array_push(self::$db_2_query_history, ob_get_contents());
-                            } else if ($database == 'DATABASE_3') {
-                                array_push(self::$db_3_query_history, ob_get_contents());
-                            }
-
-                            ob_end_clean();
-
-
-                            exit();
+                        if ($database == 'DATABASE_1') {
+                            array_push(self::$db_1_query_history, ob_get_contents());
+                        } else if ($database == 'DATABASE_2') {
+                            array_push(self::$db_2_query_history, ob_get_contents());
+                        } else if ($database == 'DATABASE_3') {
+                            array_push(self::$db_3_query_history, ob_get_contents());
                         }
+
+                        ob_end_clean();
+
+                        throw new BadQueryException($error->getMessage());
 
                     }
                 } else if ($method === DELETE) {
@@ -1056,18 +951,7 @@ class Model
 
 
                     } catch (\PDOException $error) {
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
                     }
                 } else if ($method === DELETE_CONDITION) {
 
@@ -1099,19 +983,8 @@ class Model
                         $this->condition_parameters = NULL;
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
+                        throw new BadQueryException($error->getMessage());
 
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
                     }
 
 
@@ -1153,18 +1026,8 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
 
@@ -1218,18 +1081,8 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
 
@@ -1277,18 +1130,8 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
 
@@ -1343,29 +1186,18 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
 
 
                 } else {
                     echo 'Error Occured';
-                    http_response_code(500);
+
                     exit();
                 }
-            }
-            else if (Environment::get($database, 'Driver') == 'sqlsrv') {
+            } else if (Environment::get($database, 'Driver') == 'sqlsrv') {
 
 
                 if ($method === CREATE) {
@@ -1405,18 +1237,8 @@ class Model
                         $this->fields = NULL;
                         $this->parameters = NULL;
                     } catch (\PDOException $error) {
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
                     }
                 } else if ($method === READ) {
 
@@ -1470,18 +1292,8 @@ class Model
                         $this->fields = NULL;
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
 
@@ -1524,18 +1336,8 @@ class Model
 
                         } catch (\PDOException $error) {
 
-                            if (Environment::get('DEBUG', 'Errors') == 'on') {
-                                http_response_code(500);
-                                $error_no = "Database Query Error !";
-                                $error_message = $error->getMessage();
-                                Output::printC($error_no);
-                                Output::printC($error_message);
-                                exit();
-                            } else {
-                                http_response_code(500);
-                                Output::printC("Sorry ! Unexpected Error Occurred");
-                                exit();
-                            }
+                            throw new BadQueryException($error->getMessage());
+
                         }
                     }
 
@@ -1598,18 +1400,8 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
 
@@ -1656,19 +1448,8 @@ class Model
 
                         } catch (\PDOException $error) {
 
-                            if (Environment::get('DEBUG', 'Errors') == 'on') {
-                                http_response_code(500);
-                                $error_no = "Database Query Error !";
-                                $error_message = $error->getMessage();
-                                Output::printC($error_no);
-                                Output::printC($error_message);Output::printC($error_no);
-                                Output::printC($error_message);
-                                exit();
-                            } else {
-                                http_response_code(500);
-                                Output::printC("Sorry ! Unexpected Error Occurred");
-                                exit();
-                            }
+                            throw new BadQueryException($error->getMessage());
+
                         }
                     }
 
@@ -1706,18 +1487,8 @@ class Model
                         $this->parameters = NULL;
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
                 } else if ($method === UPDATE_CONDITION) {
@@ -1765,50 +1536,24 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
 
-                            ob_start();
+                        ob_start();
 
-                            $query_handler->debugDumpParams();
+                        $query_handler->debugDumpParams();
 
-                            if ($database == 'DATABASE_1') {
-                                array_push(self::$db_1_query_history, ob_get_contents());
-                            } else if ($database == 'DATABASE_2') {
-                                array_push(self::$db_2_query_history, ob_get_contents());
-                            } else if ($database == 'DATABASE_3') {
-                                array_push(self::$db_3_query_history, ob_get_contents());
-                            }
-
-                            ob_end_clean();
-
-
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-
-                            ob_start();
-
-                            $query_handler->debugDumpParams();
-
-                            if ($database == 'DATABASE_1') {
-                                array_push(self::$db_1_query_history, ob_get_contents());
-                            } else if ($database == 'DATABASE_2') {
-                                array_push(self::$db_2_query_history, ob_get_contents());
-                            } else if ($database == 'DATABASE_3') {
-                                array_push(self::$db_3_query_history, ob_get_contents());
-                            }
-
-                            ob_end_clean();
-
-
-                            exit();
+                        if ($database == 'DATABASE_1') {
+                            array_push(self::$db_1_query_history, ob_get_contents());
+                        } else if ($database == 'DATABASE_2') {
+                            array_push(self::$db_2_query_history, ob_get_contents());
+                        } else if ($database == 'DATABASE_3') {
+                            array_push(self::$db_3_query_history, ob_get_contents());
                         }
+
+                        ob_end_clean();
+
+
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
                 } else if ($method === DELETE) {
@@ -1835,18 +1580,8 @@ class Model
                         ob_end_clean();
 
                     } catch (\PDOException $error) {
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
                     }
                 } else if ($method === DELETE_CONDITION) {
 
@@ -1879,19 +1614,8 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
+                        throw new BadQueryException($error->getMessage());
 
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
                     }
 
 
@@ -1931,18 +1655,8 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
 
@@ -1996,18 +1710,8 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
 
@@ -2055,18 +1759,8 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
 
@@ -2121,36 +1815,26 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
 
 
                 } else {
                     if (Environment::get('DEBUG', 'Errors') == 'on') {
-                        http_response_code(500);
-                        $error_no = "Database Query Error !";
+
+                        $error_no = "ORM Method is not Valid !";
                         Output::printC($error_no);
                         exit();
                     } else {
-                        http_response_code(500);
+
                         Output::printC("Sorry ! Unexpected Error Occurred");
                         exit();
                     }
                 }
             }
-            if (Environment::get($database,'Driver') == 'sqlite') {
+            if (Environment::get($database, 'Driver') == 'sqlite') {
 
 
                 $table = explode(',', $table);
@@ -2199,21 +1883,10 @@ class Model
                         $this->fields = NULL;
                         $this->parameters = NULL;
                     } catch (\PDOException $error) {
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
                     }
-                }
-                else if ($method === READ) {
+                } else if ($method === READ) {
 
 
                     $pattern = '/^[0-9]{0,999}+$/';
@@ -2266,18 +1939,8 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
 
@@ -2322,23 +1985,12 @@ class Model
 
                         } catch (\PDOException $error) {
 
-                            if (Environment::get('DEBUG', 'Errors') == 'on') {
-                                http_response_code(500);
-                                $error_no = "Database Query Error !";
-                                $error_message = $error->getMessage();
-                                Output::printC($error_no);
-                                Output::printC($error_message);
-                                exit();
-                            } else {
-                                http_response_code(500);
-                                Output::printC("Sorry ! Unexpected Error Occurred");
-                                exit();
-                            }
+                            throw new BadQueryException($error->getMessage());
+
                         }
                     }
 
-                }
-                else if ($method === READ_CONDITION) {
+                } else if ($method === READ_CONDITION) {
 
                     $pattern = '/^[0-9]{0,999}+$/';
                     if (!preg_match($pattern, $offset)) {
@@ -2396,18 +2048,8 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
 
@@ -2454,18 +2096,8 @@ class Model
 
                         } catch (\PDOException $error) {
 
-                            if (Environment::get('DEBUG', 'Errors') == 'on') {
-                                http_response_code(500);
-                                $error_no = "Database Query Error !";
-                                $error_message = $error->getMessage();
-                                Output::printC($error_no);
-                                Output::printC($error_message);
-                                exit();
-                            } else {
-                                http_response_code(500);
-                                Output::printC("Sorry ! Unexpected Error Occurred");
-                                exit();
-                            }
+                            throw new BadQueryException($error->getMessage());
+
                         }
                     }
 
@@ -2473,8 +2105,7 @@ class Model
                     $this->condition_parameters = NULL;
 
 
-                }
-                else if ($method === UPDATE) {
+                } else if ($method === UPDATE) {
 
 
                     $update_fields = implode(', ', querySyntax(array_keys($this->fields), 'update'));
@@ -2504,22 +2135,11 @@ class Model
                         $this->parameters = NULL;
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
-                }
-                else if ($method === UPDATE_CONDITION) {
+                } else if ($method === UPDATE_CONDITION) {
 
 
                     $fields = implode(', ', querySyntax(array_keys($this->fields), 'update'));
@@ -2564,54 +2184,26 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
 
-                            ob_start();
+                        ob_start();
 
-                            $query_handler->debugDumpParams();
+                        $query_handler->debugDumpParams();
 
-                            if ($database == 'DATABASE_1') {
-                                array_push(self::$db_1_query_history, ob_get_contents());
-                            } else if ($database == 'DATABASE_2') {
-                                array_push(self::$db_2_query_history, ob_get_contents());
-                            } else if ($database == 'DATABASE_3') {
-                                array_push(self::$db_3_query_history, ob_get_contents());
-                            }
-
-                            ob_end_clean();
-
-
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-
-                            ob_start();
-
-                            $query_handler->debugDumpParams();
-
-                            if ($database == 'DATABASE_1') {
-                                array_push(self::$db_1_query_history, ob_get_contents());
-                            } else if ($database == 'DATABASE_2') {
-                                array_push(self::$db_2_query_history, ob_get_contents());
-                            } else if ($database == 'DATABASE_3') {
-                                array_push(self::$db_3_query_history, ob_get_contents());
-                            }
-
-                            ob_end_clean();
-
-
-                            exit();
+                        if ($database == 'DATABASE_1') {
+                            array_push(self::$db_1_query_history, ob_get_contents());
+                        } else if ($database == 'DATABASE_2') {
+                            array_push(self::$db_2_query_history, ob_get_contents());
+                        } else if ($database == 'DATABASE_3') {
+                            array_push(self::$db_3_query_history, ob_get_contents());
                         }
 
+                        ob_end_clean();
+
+                        throw new BadQueryException($error->getMessage());
+
+
                     }
-                }
-                else if ($method === DELETE) {
+                } else if ($method === DELETE) {
 
                     $query = "DELETE FROM $table";
                     try {
@@ -2636,21 +2228,10 @@ class Model
 
 
                     } catch (\PDOException $error) {
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
                     }
-                }
-                else if ($method === DELETE_CONDITION) {
+                } else if ($method === DELETE_CONDITION) {
 
                     $conditions = implode(' ', querySyntax(array_keys(self::$condition_fields), 'condition'));
 
@@ -2680,24 +2261,12 @@ class Model
                         $this->condition_parameters = NULL;
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
+                        throw new BadQueryException($error->getMessage());
 
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
                     }
 
 
-                }
-                else if ($method === COUNT) {
+                } else if ($method === COUNT) {
 
                     $query = "SELECT count(*) As Count FROM $table";
 
@@ -2735,24 +2304,13 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
 
 
-                }
-                else if ($method === COUNT_CONDITION) {
+                } else if ($method === COUNT_CONDITION) {
 
 
                     $conditions = implode(' ', querySyntax(array_keys(self::$condition_fields), 'condition'));
@@ -2801,23 +2359,11 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
 
                     }
 
-                }
-                else if ($method === AVG) {
+                } else if ($method === AVG) {
 
                     $fields = implode(', ', querySyntax(array_keys($this->fields), 'avg'));
 
@@ -2861,23 +2407,12 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
 
-                }
-                else if ($method === AVG_CONDITION) {
+                } else if ($method === AVG_CONDITION) {
 
                     $fields = implode(', ', querySyntax(array_keys($this->fields), 'avg'));
 
@@ -2928,27 +2463,23 @@ class Model
 
                     } catch (\PDOException $error) {
 
-                        if (Environment::get('DEBUG', 'Errors') == 'on') {
-                            http_response_code(500);
-                            $error_no = "Database Query Error !";
-                            $error_message = $error->getMessage();
-                            Output::printC($error_no);
-                            Output::printC($error_message);
-                            exit();
-                        } else {
-                            http_response_code(500);
-                            Output::printC("Sorry ! Unexpected Error Occurred");
-                            exit();
-                        }
+                        throw new BadQueryException($error->getMessage());
+
 
                     }
 
 
-                }
-                else {
-                    echo 'Error Occurred';
-                    http_response_code(500);
-                    exit();
+                } else {
+                    if (Environment::get('DEBUG', 'Errors') == 'on') {
+
+                        $error_no = "ORM Method is not Valid !";
+                        Output::printC($error_no);
+                        exit();
+                    } else {
+
+                        Output::printC("Sorry ! Unexpected Error Occurred");
+                        exit();
+                    }
                 }
             }
         }
@@ -2963,6 +2494,7 @@ class Model
      * @param $query
      * @param $method
      * @param $database
+     * @throws BadQueryException
      */
     public function freeQuery($query, $method, $database)
     {
@@ -2998,28 +2530,19 @@ class Model
 
         } catch (\PDOException $error) {
 
-            if (Environment::get('DEBUG', 'Errors') == 'on') {
-                http_response_code(500);
-                $error_no = "Database Query Error !";
-                $error_message = $error->getMessage();
-                Output::printC($error_no);
-                Output::printC($error_message);
-                exit();
-            } else {
-                http_response_code(500);
-                Output::printC("Sorry ! Unexpected Error Occurred");
-                exit();
-            }
+            throw new BadQueryException($error->getMessage());
+
         }
     }
 
 
-    public function getContent($database_slot){
-        if ($database_slot == DB1){
+    public function getContent($database_slot)
+    {
+        if ($database_slot == DB1) {
             return $this->db_1_content;
-        } else if ($database_slot == DB2){
+        } else if ($database_slot == DB2) {
             return $this->db_2_content;
-        } else if ($database_slot == DB3){
+        } else if ($database_slot == DB3) {
             return $this->db_3_content;
         } else {
             return FALSE;
@@ -3027,24 +2550,26 @@ class Model
 
     }
 
-    public function getPagesCount($database_slot){
-        if ($database_slot == DB1){
+    public function getPagesCount($database_slot)
+    {
+        if ($database_slot == DB1) {
             return $this->db_1_pages_count;
-        } else if ($database_slot == DB2){
+        } else if ($database_slot == DB2) {
             return $this->db_2_pages_count;
-        } else if ($database_slot == DB3){
+        } else if ($database_slot == DB3) {
             return $this->db_3_pages_count;
         } else {
             return FALSE;
         }
     }
 
-    public static function getQueryHistory($database_slot){
-        if ($database_slot == DB1){
+    public static function getQueryHistory($database_slot)
+    {
+        if ($database_slot == DB1) {
             return self::$db_1_query_history;
-        } else if ($database_slot == DB2){
+        } else if ($database_slot == DB2) {
             return self::$db_2_query_history;
-        } else if ($database_slot == DB3){
+        } else if ($database_slot == DB3) {
             return self::$db_3_query_history;
         } else {
             return FALSE;
